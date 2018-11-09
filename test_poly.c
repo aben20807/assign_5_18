@@ -52,7 +52,7 @@ double test_poly(PolyFunc poly, long degree)
     for (int i = 0 + extreme_num; i < TEST_TIMES - extreme_num; i++) {
         total_cyc += (double) exec_cyc[i];
     }
-    return total_cyc / TEST_TIMES;
+    return total_cyc / (TEST_TIMES * 9 / 10);
 }
 
 int main(int argc, char *argv[])
