@@ -1,0 +1,5 @@
+*.o
+*.out
+*.png
+*.txt
+test_poly
