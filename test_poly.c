@@ -7,8 +7,8 @@
 typedef double (*PolyFunc)(double a[], double x, long degree);
 
 #define TEST_TIMES 1000
-#define MAX_DEGREE 1000000
-#define DEGREE_STEP 10000
+#define MAX_DEGREE 10000
+#define DEGREE_STEP 100
 
 /* Record cycle count per test time of each degree */
 long long exec_cyc[TEST_TIMES] = {0};

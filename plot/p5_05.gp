@@ -1,13 +1,16 @@
 reset
 set ylabel 'cycle'
-set xtics 100000
+set xlabel 'degree'
+set xtics 1000
 set xtics rotate by -60
+set format x "%.0t*10^%T";
+set format y "%.0t*10^%T";
 set style fill solid
 set key center top
 set title 'poly test'
-set term png enhanced font 'Verdana,10'
+set term png enhanced font 'Verdana,18' size 1600, 1200
 set output 'assign_5_5_and_5_6.png'
 
-plot [:1000000][0:] \
-'output.txt' using 1:2 with dots title '5.5', \
-'' using 1:3 with dots title '5.6', \
+plot [:10000][0:] \
+'output.txt' using 1:2 with points pointtype 7 title '5.5', \
+'' using 1:3 with points pointtype 7 title '5.6', \
