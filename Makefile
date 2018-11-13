@@ -26,8 +26,8 @@ plot1: $(EXEC)
 
 plot2: $(EXEC)
 	./$(EXEC) 2 > output.txt
-	gnuplot plot/p5_05.gp
-	eog assign_5_5_and_5_6.png &
+	gnuplot plot/p5_05_vs_5_05_rev.gp
+	eog 5_5_vs_5_5_rev.png &
 
 plot3: $(EXEC)
 	./$(EXEC) 3 > output.txt
