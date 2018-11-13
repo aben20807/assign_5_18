@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "poly_5_05.h"
+#include "poly_5_05_rev.h"
 #include "poly_5_06.h"
 #include "poly_5_06_rev.h"
 
@@ -74,7 +75,7 @@ int main(int argc, char *argv[])
     } else if (arg == 2) {
         for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
             cycle_1 = test_poly(poly_5_05, i);
-            cycle_2 = test_poly(poly_5_06, i);
+            cycle_2 = test_poly(poly_5_05_rev, i);
             printf("%d\t%lf\t%lf\n", i, cycle_1, cycle_2);
         }
     } else {
