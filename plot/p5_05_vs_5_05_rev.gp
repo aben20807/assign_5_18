@@ -13,4 +13,4 @@ set output '5_5_vs_5_5_rev.png'
 
 plot [:1000][0:] \
 'output.txt' using 1:2 with points pointtype 7 title '5.5', \
-'' using 1:3 with points pointtype 7 title '5.5_rev', \
+'' using 1:3 with points pointtype 7 title '5.5rev', \
