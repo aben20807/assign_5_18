@@ -19,10 +19,8 @@ $(EXEC): $(OBJS) $(EXEC).o
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
 
-output.txt: $(EXEC)
+plot: $(EXEC)
 	./$(EXEC) > output.txt
-
-plot: output.txt
 	gnuplot plot/p5_05.gp
 	eog assign_5_5_and_5_6.png &
 
