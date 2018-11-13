@@ -20,25 +20,73 @@ double poly_5_06(double a[], double x, long degree)
     return result;
 }
 
-double poly_5_05_rev(double a[], double x, long degree)
+double poly_5_05_rev_2(double a[], double x, long degree)
 {
     long i;
-    double result = a[0];
+    double result_0 = a[0];
+    double result_1 = 0;
     double xpwr = x;
-    double x_square = x * x;
-    double x_qube = x * x_square;
-    for (i = 1; i < degree - 1; i += 3) {
-        result += a[i] * xpwr;
-        result += a[i + 1] * xpwr * x;
-        result += a[i + 2] * xpwr * x_square;
-        xpwr = xpwr * x_qube;
+    double x_pow_2 = x * x;
+    for (i = 1; i < degree - 1; i += 2) {
+        result_0 += a[i] * xpwr;
+        result_1 += a[i + 1] * xpwr * x;
+        xpwr = xpwr * x_pow_2;
     }
 
     for (; i <= degree; i++) {
-        result += a[i] * xpwr;
+        result_0 += a[i] * xpwr;
         xpwr = xpwr * x;
     }
-    return result;
+    return result_0 + result_1;
+}
+
+double poly_5_05_rev_3(double a[], double x, long degree)
+{
+    long i;
+    double result_0 = a[0];
+    double result_1 = 0;
+    double result_2 = 0;
+    double xpwr = x;
+    double x_pow_2 = x * x;
+    double x_pow_3 = x * x_pow_2;
+    for (i = 1; i < degree - 1; i += 3) {
+        result_0 += a[i] * xpwr;
+        result_1 += a[i + 1] * xpwr * x;
+        result_2 += a[i + 2] * xpwr * x_pow_2;
+        xpwr = xpwr * x_pow_3;
+    }
+
+    for (; i <= degree; i++) {
+        result_0 += a[i] * xpwr;
+        xpwr = xpwr * x;
+    }
+    return result_0 + result_1 + result_2;
+}
+
+double poly_5_05_rev(double a[], double x, long degree)
+{
+    long i;
+    double result_0 = a[0];
+    double result_1 = 0;
+    double result_2 = 0;
+    double result_4 = 0;
+    double xpwr = x;
+    double x_pow_2 = x * x;
+    double x_pow_3 = x * x_pow_2;
+    double x_pow_4 = x * x_pow_3;
+    for (i = 1; i < degree - 2; i += 4) {
+        result_0 += a[i] * xpwr;
+        result_1 += a[i + 1] * xpwr * x;
+        result_2 += a[i + 2] * xpwr * x_pow_2;
+        result_4 += a[i + 3] * xpwr * x_pow_3;
+        xpwr = xpwr * x_pow_4;
+    }
+
+    for (; i <= degree; i++) {
+        result_0 += a[i] * xpwr;
+        xpwr = xpwr * x;
+    }
+    return result_0 + result_1 + result_2 + result_4;
 }
 
 double poly_5_06_rev(double a[], double x, long degree)
