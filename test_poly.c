@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "poly_5_05.h"
 #include "poly_5_06.h"
+#include "poly_5_06_rev.h"
 
 typedef double (*PolyFunc)(double a[], double x, long degree);
 
@@ -52,16 +53,37 @@ double test_poly(PolyFunc poly, long degree)
     for (int i = 0 + extreme_num; i < TEST_TIMES - extreme_num; i++) {
         total_cyc += (double) exec_cyc[i];
     }
-    return total_cyc / TEST_TIMES;
+    return total_cyc / (TEST_TIMES * 9 / 10);
 }
 
 int main(int argc, char *argv[])
 {
-    double cycle_5_05, cycle_5_06;
-    for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
-        cycle_5_05 = test_poly(poly_5_05, i);
-        cycle_5_06 = test_poly(poly_5_06, i);
-        printf("%d\t%lf\t%lf\n", i, cycle_5_05, cycle_5_06);
+    int arg = atoi(argv[1]);
+    if (argc != 2 && (arg < 1 || arg > 3)) {
+        printf("Error: invalid argument\n");
+        return 0;
     }
+    double cycle_1, cycle_2;
+
+    if (arg == 1) {
+        for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
+            cycle_1 = test_poly(poly_5_05, i);
+            cycle_2 = test_poly(poly_5_06, i);
+            printf("%d\t%lf\t%lf\n", i, cycle_1, cycle_2);
+        }
+    } else if (arg == 2) {
+        for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
+            cycle_1 = test_poly(poly_5_05, i);
+            cycle_2 = test_poly(poly_5_06, i);
+            printf("%d\t%lf\t%lf\n", i, cycle_1, cycle_2);
+        }
+    } else {
+        for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
+            cycle_1 = test_poly(poly_5_06, i);
+            cycle_2 = test_poly(poly_5_06_rev, i);
+            printf("%d\t%lf\t%lf\n", i, cycle_1, cycle_2);
+        }
+    }
+
     return 0;
 }
