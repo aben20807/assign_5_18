@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -O1 -Wall -Werror -g
-OBJS = poly_5_05.o poly_5_06.o poly_5_05_rev.o poly_5_06_rev.o
+OBJS = poly_funcs.o
 EXEC = test_poly
 LIBS = -lpapi
 

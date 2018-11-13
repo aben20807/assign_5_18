@@ -1,10 +1,7 @@
 #include <papi.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "poly_5_05.h"
-#include "poly_5_05_rev.h"
-#include "poly_5_06.h"
-#include "poly_5_06_rev.h"
+#include "poly_funcs.h"
 
 typedef double (*PolyFunc)(double a[], double x, long degree);
 
@@ -38,8 +35,8 @@ double test_poly(PolyFunc poly, long degree)
 
         /* Check correctness */
         if (ans != (double) degree / 2) {
-            printf("wrong answer: %lf (should be %lf)\n", ans,
-                   (double) degree / 2);
+            fprintf(stderr, "wrong answer: %lf (should be %lf)\n", ans,
+                    (double) degree / 2);
         }
     }
 
