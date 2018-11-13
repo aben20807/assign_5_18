@@ -21,10 +21,6 @@ int compare(const void *a, const void *b)
 
 double test_poly(PolyFunc poly, long degree)
 {
-    if (PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT) {
-        exit(1);
-    }
-
     /* Create test array */
     double a[degree + 1];
     for (long i = 0; i < degree + 1; i++) {
@@ -63,8 +59,12 @@ int main(int argc, char *argv[])
         printf("Error: invalid argument\n");
         return 0;
     }
-    double cycle_1, cycle_2;
 
+    if (PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT) {
+        exit(1);
+    }
+
+    double cycle_1, cycle_2;
     if (arg == 1) {
         for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
             cycle_1 = test_poly(poly_5_05, i);
@@ -85,5 +85,6 @@ int main(int argc, char *argv[])
         }
     }
 
+    PAPI_shutdown();
     return 0;
 }
