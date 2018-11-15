@@ -37,6 +37,7 @@ double test_poly(PolyFunc poly, long degree)
         if (ans != (double) degree / 2) {
             fprintf(stderr, "wrong answer: %lf (should be %lf)\n", ans,
                     (double) degree / 2);
+            exit(1);
         }
     }
 
