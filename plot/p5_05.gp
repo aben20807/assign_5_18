@@ -12,6 +12,10 @@ set title 'poly test'
 set term png enhanced font 'Verdana,18' size 1600, 1200
 set output 'assign_5_5_and_5_6.png'
 
+set grid ytics lt 1 lw 2 lc rgb "#bbbbbb"
+set grid xtics lt 1 lw 2 lc rgb "#bbbbbb"
+show grid
+
 plot [:1000][0:] \
 'output.txt' using 1:2 with points pointtype 7 title '5.5', \
 '' using 1:3 with points pointtype 7 title '5.6', \
