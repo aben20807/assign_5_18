@@ -69,7 +69,7 @@ double poly_5_05_rev(double a[], double x, long degree)
     double result_0 = a[0];
     double result_1 = 0;
     double result_2 = 0;
-    double result_4 = 0;
+    double result_3 = 0;
     double xpwr = x;
     double x_pow_2 = x * x;
     double x_pow_3 = x * x_pow_2;
@@ -78,7 +78,7 @@ double poly_5_05_rev(double a[], double x, long degree)
         result_0 += a[i] * xpwr;
         result_1 += a[i + 1] * xpwr * x;
         result_2 += a[i + 2] * xpwr * x_pow_2;
-        result_4 += a[i + 3] * xpwr * x_pow_3;
+        result_3 += a[i + 3] * xpwr * x_pow_3;
         xpwr = xpwr * x_pow_4;
     }
 
@@ -86,7 +86,7 @@ double poly_5_05_rev(double a[], double x, long degree)
         result_0 += a[i] * xpwr;
         xpwr = xpwr * x;
     }
-    return result_0 + result_1 + result_2 + result_4;
+    return result_0 + result_1 + result_2 + result_3;
 }
 
 double poly_5_06_rev(double a[], double x, long degree)
