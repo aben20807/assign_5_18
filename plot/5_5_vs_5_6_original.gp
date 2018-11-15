@@ -10,7 +10,7 @@ set style fill solid
 set key center top
 set title 'poly test'
 set term png enhanced font 'Verdana,18' size 1600, 1200
-set output 'assign_5_5_and_5_6.png'
+set output '5_5_vs_5_6_original.png'
 
 set grid ytics lt 1 lw 2 lc rgb "#bbbbbb"
 set grid xtics lt 1 lw 2 lc rgb "#bbbbbb"

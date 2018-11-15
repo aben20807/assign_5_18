@@ -74,14 +74,49 @@ int main(int argc, char *argv[])
     } else if (arg == 2) {
         for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
             cycle_1 = test_poly(poly_5_05, i);
-            cycle_2 = test_poly(poly_5_05_rev, i);
+            cycle_2 = test_poly(poly_5_05_rev_8, i);
             printf("%d\t%lf\t%lf\n", i, cycle_1, cycle_2);
         }
-    } else {
+    } else if (arg == 3) {
         for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
             cycle_1 = test_poly(poly_5_06, i);
             cycle_2 = test_poly(poly_5_06_rev, i);
             printf("%d\t%lf\t%lf\n", i, cycle_1, cycle_2);
+        }
+    } else {
+        for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
+            cycle_1 = test_poly(poly_5_05, i);
+            printf("%d\t%lf\t", i, cycle_1);
+
+            cycle_1 = test_poly(poly_5_05_rev_2, i);
+            printf("%lf\t", cycle_1);
+
+            cycle_1 = test_poly(poly_5_05_rev_3, i);
+            printf("%lf\t", cycle_1);
+
+            cycle_1 = test_poly(poly_5_05_rev_4, i);
+            printf("%lf\t", cycle_1);
+
+            cycle_1 = test_poly(poly_5_05_rev_5, i);
+            printf("%lf\t", cycle_1);
+
+            cycle_1 = test_poly(poly_5_05_rev_6, i);
+            printf("%lf\t", cycle_1);
+
+            cycle_1 = test_poly(poly_5_05_rev_7, i);
+            printf("%lf\t", cycle_1);
+
+            cycle_1 = test_poly(poly_5_05_rev_8, i);
+            printf("%lf\t", cycle_1);
+
+            cycle_1 = test_poly(poly_5_05_3way, i);
+            printf("%lf\t", cycle_1);
+
+            cycle_1 = test_poly(poly_5_05_6way, i);
+            printf("%lf\t", cycle_1);
+
+            cycle_1 = test_poly(poly_5_05_9way, i);
+            printf("%lf\n", cycle_1);
         }
     }
 

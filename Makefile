@@ -21,18 +21,23 @@ $(EXEC): $(OBJS) $(EXEC).o
 
 plot1: $(EXEC)
 	./$(EXEC) 1 > output.txt
-	gnuplot plot/p5_05.gp
-	eog assign_5_5_and_5_6.png &
+	gnuplot plot/5_5_vs_5_6_original.gp
+	eog 5_5_vs_5_6_original.png &
 
 plot2: $(EXEC)
 	./$(EXEC) 2 > output.txt
-	gnuplot plot/p5_05_vs_5_05_rev.gp
+	gnuplot plot/5_5_vs_5_5_rev.gp
 	eog 5_5_vs_5_5_rev.png &
 
 plot3: $(EXEC)
 	./$(EXEC) 3 > output.txt
-	gnuplot plot/p5_06_vs_5_06_rev.gp
+	gnuplot plot/5_6_vs_5_6_rev.gp
 	eog 5_6_vs_5_6_rev.png &
+
+plot4: $(EXEC)
+	./$(EXEC) 4 > output.txt
+	gnuplot plot/5_05_comparison_all.gp
+	eog 5_05_comparison_all.png &
 
 clean:
 	rm -f *.o $(EXEC)
