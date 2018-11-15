@@ -1,7 +1,8 @@
 #include <papi.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "poly_funcs.h"
+#include "poly_funcs_5_5.h"
+#include "poly_funcs_5_6.h"
 
 typedef double (*PolyFunc)(double a[], double x, long degree);
 
