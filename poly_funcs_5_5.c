@@ -239,10 +239,6 @@ double poly_5_05_6way(double a[], double x, long degree)
     long i;
     double result_0 = a[0];
     double result_1 = 0;
-    double result_2 = 0;
-    double result_3 = 0;
-    double result_4 = 0;
-    double result_5 = 0;
     double xpwr = x;
     double x_pow_2 = x * x;
     double x_pow_3 = x * x_pow_2;
@@ -251,7 +247,7 @@ double poly_5_05_6way(double a[], double x, long degree)
     double x_pow_6 = x * x_pow_5;
     for (i = 1; i <= degree - 5; i += 6) {
         result_0 += (a[i] + a[i + 1] * x + a[i + 2] * x_pow_2) * xpwr;
-        result_3 +=
+        result_1 +=
             (a[i + 3] * x_pow_3 + a[i + 4] * x_pow_4 + a[i + 5] * x_pow_5) *
             xpwr;
         xpwr = xpwr * x_pow_6;
@@ -261,7 +257,7 @@ double poly_5_05_6way(double a[], double x, long degree)
         result_0 += a[i] * xpwr;
         xpwr = xpwr * x;
     }
-    return result_0 + result_1 + result_2 + result_3 + result_4 + result_5;
+    return result_0 + result_1;
 }
 
 double poly_5_05_9way(double a[], double x, long degree)
@@ -270,9 +266,6 @@ double poly_5_05_9way(double a[], double x, long degree)
     double result_0 = a[0];
     double result_1 = 0;
     double result_2 = 0;
-    double result_3 = 0;
-    double result_4 = 0;
-    double result_5 = 0;
     double xpwr = x;
     double x_pow_2 = x * x;
     double x_pow_3 = x * x_pow_2;
@@ -284,10 +277,10 @@ double poly_5_05_9way(double a[], double x, long degree)
     double x_pow_9 = x * x_pow_8;
     for (i = 1; i <= degree - 8; i += 9) {
         result_0 += (a[i] + a[i + 1] * x + a[i + 2] * x_pow_2) * xpwr;
-        result_3 +=
+        result_1 +=
             (a[i + 3] * x_pow_3 + a[i + 4] * x_pow_4 + a[i + 5] * x_pow_5) *
             xpwr;
-        result_4 +=
+        result_2 +=
             (a[i + 6] * x_pow_6 + a[i + 7] * x_pow_7 + a[i + 8] * x_pow_8) *
             xpwr;
         xpwr = xpwr * x_pow_9;
@@ -297,5 +290,5 @@ double poly_5_05_9way(double a[], double x, long degree)
         result_0 += a[i] * xpwr;
         xpwr = xpwr * x;
     }
-    return result_0 + result_1 + result_2 + result_3 + result_4 + result_5;
+    return result_0 + result_1 + result_2;
 }
