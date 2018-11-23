@@ -1,5 +1,14 @@
+*.swp
 *.o
 *.out
 *.png
 *.txt
+
+# dynamic files
+dynamic_poly.c
+dynamic_poly.h
+
+# exec
+*.exe
+gen_poly
 test_poly
