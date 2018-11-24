@@ -52,7 +52,7 @@ int main(int argc, char *argv[]){
                     fprintf(cf, " + a[i + %d] * x_pow_%d", idx_cnt, idx_cnt);
                     idx_cnt++;
                 }
-                fprintf(cf, ");\n");
+                fprintf(cf, ") * xpwr;\n");
             }
             fprintf(cf, "xpwr = xpwr * x_pow_%d;\n", pw_times);
             fprintf(cf, "}");
