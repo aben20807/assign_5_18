@@ -25,7 +25,7 @@ plot1: $(EXEC)
 	eog 5_5_vs_5_6_original.png &
 
 plot2: $(EXEC)
-	./$(EXEC) 2 > output.txt
+	taskset -c 0 nice --adjustment=20 ./$(EXEC) 2 > output.txt
 	gnuplot plot/5_5_vs_5_5_rev.gp
 	eog 5_5_vs_5_5_rev.png &
 
