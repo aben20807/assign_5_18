@@ -15,7 +15,7 @@ set output '5_5_vs_5_5_rev.png'
 set grid ytics lt 1 lw 2 lc rgb "#bbbbbb"
 set grid xtics lt 1 lw 2 lc rgb "#bbbbbb"
 show grid
-    
+
 plot [:1000][0:] \
 'output.txt' using 1:2 with points pointtype 7 title '5.5', \
 '' using 1:3 with points pointtype 7 title '5.5rev', \
