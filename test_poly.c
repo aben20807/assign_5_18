@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "dynamic_gen/dynamic_poly.h"
 #include "poly_funcs_5_5.h"
 #include "poly_funcs_5_6.h"
 
@@ -20,7 +21,7 @@ int compare(const void *a, const void *b)
     return (*(double *) a - *(double *) b);
 }
 
-double tvgetf() 
+double tvgetf()
 {
     struct timespec ts;
     double sec;
@@ -46,9 +47,9 @@ double test_poly(PolyFunc poly, long degree)
         double t1 = tvgetf();
         ans = poly(a, -1, degree);
         double t2 = tvgetf();
-        
+
         exec_cyc[i] = (t2 - t1) * CPU_FREQ;
-        
+
         /* Check correctness */
         if (ans != (double) degree / 2) {
             fprintf(stderr, "wrong answer: %lf (should be %lf)\n", ans,
