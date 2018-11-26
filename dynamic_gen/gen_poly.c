@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define SPLIT_NUM 2
-#define UNROL_NUM 3
+#define SPLIT_NUM 8
+#define UNROL_NUM 8
 
 int main(int argc, char *argv[]){
 
