@@ -1,10 +1,10 @@
 CC = gcc
-CFLAGS = -O1 -Wall -Werror -g -I./dynamic_gen
+CFLAGS = -O1 -Wall -Werror
 OBJS = poly_funcs_5_5.o poly_funcs_5_6.o ./dynamic_gen/dynamic_poly.o
 EXEC = test_poly
-LIBS = -lpapi
 CPU_FREQ = sudo cpupower frequency-set -g
 SUBDIR = ./dynamic_gen
+INCLUDES = -I$(SUBDIR)
 
 GIT_HOOKS := .git/hooks/applied
 all: $(GIT_HOOKS) $(EXEC)
@@ -19,7 +19,7 @@ $(GIT_HOOKS):
 	$(MAKE) -C $(SUBDIR)
 
 $(EXEC): $(OBJS) $(EXEC).o
-	$(CC) $(CFLAGS) $(OBJS) $(EXEC).o -o $@ $(LIBS)
+	$(CC) $(CFLAGS) $(INCLUDES) $(OBJS) $(EXEC).o -o $@ $(LIBS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
