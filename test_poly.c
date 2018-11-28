@@ -1,4 +1,3 @@
-#include <papi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -76,10 +75,6 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    if (PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT) {
-        exit(1);
-    }
-
     double cycle_1, cycle_2;
     if (arg == 1) {
         for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
@@ -136,6 +131,5 @@ int main(int argc, char *argv[])
         }
     }
 
-    PAPI_shutdown();
     return 0;
 }
