@@ -4,9 +4,8 @@
 #include <string.h>
 #include <time.h>
 
+#include "dynamic_gen/gen_plot.h"
 #include "dynamic_gen/gen_poly.h"
-#include "poly_funcs_5_5.h"
-#include "poly_funcs_5_6.h"
 
 typedef double (*PolyFunc)(double a[], double x, long degree);
 
@@ -15,7 +14,7 @@ typedef double (*PolyFunc)(double a[], double x, long degree);
 #define DEGREE_STEP 10
 #define CPU_FREQ 1400000000
 
-enum error_type { TOO_FEW_ARGS, NULL_RETURN, WRONG_ARGS };
+enum error_type { TOO_FEW_ARGS, NULL_RETURN, WRONG_ARGS, PLOT_ERROR };
 
 /* Record cycle count per test time of each degree */
 double exec_cyc[TEST_TIMES] = {0};
@@ -101,6 +100,9 @@ void runtime_error_message(int type)
     case NULL_RETURN:
         printf("Error when creating func array\n");
         break;
+    case PLOT_ERROR:
+        printf("Some error with plotting code...\n");
+        break;
 
     default:
         help_message();
@@ -180,10 +182,77 @@ double default_test()
     return min;
 }
 
+double compare_test(int n, int *index)
+{
+    PolyFunc *func_arr = load_function_array();
+    if (func_arr == NULL) {
+        runtime_error_message(NULL_RETURN);
+        return 0;
+    }
+
+    double min = 10.0;
+    for (int i = 0; i < n; i++) {
+        double CPE = 0.0;
+        int count = 0;
+        for (int j = 0; j < MAX_DEGREE; j += DEGREE_STEP) {
+            count++;
+            double cycle = test_poly(func_arr[i], j);
+            // printf("cycle = %lf, degree = %d\n", cycle, j);
+            if (j != 0) {
+                CPE += (cycle / j);
+            }
+        }
+        CPE /= count;
+        if (CPE < min) {
+            *index = i;
+            min = CPE;
+        }
+    }
+
+    return min;
+}
+
+int plot_test(int n, char *argv[])
+{
+    PolyFunc *func_arr = load_function_array();
+    if (func_arr == NULL) {
+        runtime_error_message(NULL_RETURN);
+        return 0;
+    }
+
+    gen_plot(n, argv);
+
+    FILE *plot_output = fopen("output.txt", "w");
+
+    for (int j = 0; j < MAX_DEGREE; j += DEGREE_STEP) {
+        fprintf(plot_output, "%d ", j);
+        double cycle;
+        for (int i = 0; i < n; i++) {
+            cycle = test_poly(func_arr[i], j);
+            fprintf(plot_output, "%lf ", cycle);
+        }
+        fprintf(plot_output, "\n");
+    }
+
+    fclose(plot_output);
+
+    if (system("gnuplot dynamic_gen/plot.gp") == -1) {
+        return 0;
+    }
+
+    if (system("eog poly.png") == -1) {
+        return 0;
+    }
+
+    return 1;
+}
+
 int main(int argc, char *argv[])
 {
+    if (system("sudo cpupower frequency-set -g performance && sleep 1") == -1) {
+        return 0;
+    }
     // implement 3 type of operation, which are default, plot and compare
-
     if (argc == 1) {
         // run default, altogether 64 cases
         double result = default_test();
@@ -201,15 +270,49 @@ int main(int argc, char *argv[])
             if (argc == 2) {
                 runtime_error_message(TOO_FEW_ARGS);
             }
+
+            gen_init(argc - 2);
+            for (int i = 2; i < argc; i++) {
+                char *temp = strdup(argv[i]);
+                char *pch;
+                pch = strtok(temp, ",");
+                int x = atoi(pch);
+                pch = strtok(NULL, ",");
+                int y = atoi(pch);
+
+                free(temp);
+
+                printf("Creating %d splits and %d unroll\n", x, y);
+                gen_append_poly(x, y);
+            }
+
+            if (!plot_test(argc - 2, argv)) {
+                runtime_error_message(PLOT_ERROR);
+            }
         } else if (!strcmp(argv[1], "compare")) {
             if (argc < 4) {  // at least 2 to compare
                 runtime_error_message(TOO_FEW_ARGS);
             }
 
-            int x;
-            int y;
+            gen_init(argc - 2);
             for (int i = 2; i < argc; i++) {
+                char *temp = strdup(argv[i]);
+                char *pch;
+                pch = strtok(temp, ",");
+                int x = atoi(pch);
+                pch = strtok(NULL, ",");
+                int y = atoi(pch);
+
+                free(temp);
+
+                printf("Creating %d splits and %d unroll\n", x, y);
+                gen_append_poly(x, y);
             }
+
+            int index;
+            double result = compare_test(argc - 2, &index);
+            printf("Best split & unroll: %s\n", argv[index + 2]);
+            printf("Lowest CPE = %lf\n", result);
         } else if (!strcmp(argv[1], "help")) {
             help_message();
         } else {
@@ -217,6 +320,10 @@ int main(int argc, char *argv[])
         }
     }
 
-    printf("lol\n");
+    if (system("sudo cpupower frequency-set -g powersave") == -1) {
+        return 0;
+    }
+
+    printf("Program closing...\n");
     return 0;
 }
