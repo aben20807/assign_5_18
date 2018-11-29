@@ -5,6 +5,7 @@ EXEC = test_poly
 CPU_FREQ = sudo cpupower frequency-set -g
 SUBDIR = ./dynamic_gen
 INCLUDES = -I$(SUBDIR)
+LIBS = -ldl
 
 GIT_HOOKS := .git/hooks/applied
 all: $(GIT_HOOKS) $(EXEC)
@@ -34,6 +35,10 @@ cpu_recover:
 	@sleep 1
 	@cat /proc/cpuinfo | grep MHz
 
+default: $(EXEC) cpu_boost
+	./$(EXEC) 
+	@$(MAKE) cpu_recover
+
 plot1: $(EXEC) cpu_boost
 	./$(EXEC) 1 > output.txt
 	gnuplot plot/5_5_vs_5_6_original.gp
@@ -59,5 +64,5 @@ plot4: $(EXEC) cpu_boost
 	@$(MAKE) cpu_recover
 
 clean:
-	rm -f *.o $(EXEC)
+	rm -f *.so *.o $(EXEC)
 	$(MAKE) -C $(SUBDIR) clean

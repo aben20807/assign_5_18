@@ -1,7 +1,10 @@
+#include <dlfcn.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
-#include "dynamic_gen/dynamic_poly.h"
+
+#include "dynamic_gen/gen_poly.h"
 #include "poly_funcs_5_5.h"
 #include "poly_funcs_5_6.h"
 
@@ -11,6 +14,8 @@ typedef double (*PolyFunc)(double a[], double x, long degree);
 #define MAX_DEGREE 1000
 #define DEGREE_STEP 10
 #define CPU_FREQ 1400000000
+
+enum error_type { TOO_FEW_ARGS, NULL_RETURN, WRONG_ARGS };
 
 /* Record cycle count per test time of each degree */
 double exec_cyc[TEST_TIMES] = {0};
@@ -41,10 +46,9 @@ double test_poly(PolyFunc poly, long degree)
         a[i] = (double) i;
     }
 
-    double ans = 0;
     for (int i = 0; i < TEST_TIMES; i++) {
         double t1 = tvgetf();
-        ans = poly(a, -1, degree);
+        double ans = poly(a, -1, degree);
         double t2 = tvgetf();
 
         exec_cyc[i] = (t2 - t1) * CPU_FREQ;
@@ -67,69 +71,152 @@ double test_poly(PolyFunc poly, long degree)
     return total_cyc / (TEST_TIMES * 9 / 10);
 }
 
-int main(int argc, char *argv[])
+void help_message()
 {
-    int arg = atoi(argv[1]);
-    if (argc != 2 && (arg < 1 || arg > 3)) {
-        printf("Error: invalid argument\n");
+    printf("Usage ./test_poly [Options] [argument]\n");
+    printf("Available options: \n");
+    printf(
+        "\tdefault: run every instances of unrolling number and split "
+        "number\n");
+    printf("\t         and show the best CPE found on the system\n");
+    printf("\t         also look for the processor model name and max freq\n");
+    printf("\tplot: plot comparison graph for every argument listed\n");
+    printf("\t      issue- shall we set maximum argument number?\n");
+    printf("\tcompare: evaluate CPE for different argument,\n");
+    printf("\t            and look for the best one\n");
+    printf("\thelp: show this help message again\n");
+}
+
+void runtime_error_message(int type)
+{
+    switch (type) {
+    case WRONG_ARGS:
+        printf("Wrong arguments, please check the following help\n");
+        help_message();
+        break;
+    case TOO_FEW_ARGS:
+        printf("Too few arguments, please check the following help\n");
+        help_message();
+        break;
+    case NULL_RETURN:
+        printf("Error when creating func array\n");
+        break;
+
+    default:
+        help_message();
+    }
+}
+
+PolyFunc *load_function_array()
+{
+    if (system("clang-format -i dynamic_gen/dynamic_poly.c") == -1) {
+        return NULL;
+    }
+    printf("Successfully formatted\n");
+
+    if (system("gcc -c -fPIC dynamic_gen/dynamic_poly.c") == -1) {
+        return NULL;
+    }
+    printf("Successfully compiled dynamic.c\n");
+
+    if (system("gcc -o libdynamic_poly.so -shared dynamic_poly.o") == -1) {
+        return NULL;
+    }
+    printf("Successfully create dynamic library\n");
+
+    void *handle = dlopen("./libdynamic_poly.so", RTLD_LAZY);
+    if (!handle) {
+        fprintf(stderr, "%s\n", dlerror());
+        exit(EXIT_FAILURE);
+    }
+    dlerror();
+    PolyFunc *func_arr = dlsym(handle, "func_arr");
+
+    char *error;
+    if ((error = dlerror()) != NULL) {
+        fprintf(stderr, "%s\n", error);
+        exit(EXIT_FAILURE);
+    }
+    return func_arr;
+}
+
+double default_test()
+{
+    // default test, find lowest CPE
+    gen_init(64);
+    for (int i = 1; i <= 8; i++) {
+        for (int j = 1; j <= 8; j++) {
+            gen_append_poly(i, j);
+        }
+    }
+
+    PolyFunc *func_arr = load_function_array();
+    if (func_arr == NULL) {
+        runtime_error_message(NULL_RETURN);
         return 0;
     }
 
-    double cycle_1, cycle_2;
-    if (arg == 1) {
-        for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
-            cycle_1 = test_poly(poly_5_05, i);
-            cycle_2 = test_poly(poly_5_06, i);
-            printf("%d\t%lf\t%lf\n", i, cycle_1, cycle_2);
-        }
-    } else if (arg == 2) {
-        for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
-            cycle_1 = test_poly(poly_5_05, i);
-            cycle_2 = test_poly(poly_5_05_6way, i);
-            printf("%d\t%lf\t%lf\n", i, cycle_1, cycle_2);
-        }
-    } else if (arg == 3) {
-        for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
-            cycle_1 = test_poly(poly_5_06, i);
-            cycle_2 = test_poly(poly_5_06_rev, i);
-            printf("%d\t%lf\t%lf\n", i, cycle_1, cycle_2);
-        }
-    } else {
-        for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
-            cycle_1 = test_poly(poly_5_05, i);
-            printf("%d\t%lf\t", i, cycle_1);
-
-            cycle_1 = test_poly(poly_5_05_rev_2, i);
-            printf("%lf\t", cycle_1);
-
-            cycle_1 = test_poly(poly_5_05_rev_3, i);
-            printf("%lf\t", cycle_1);
-
-            cycle_1 = test_poly(poly_5_05_rev_4, i);
-            printf("%lf\t", cycle_1);
-
-            cycle_1 = test_poly(poly_5_05_rev_5, i);
-            printf("%lf\t", cycle_1);
-
-            cycle_1 = test_poly(poly_5_05_rev_6, i);
-            printf("%lf\t", cycle_1);
-
-            cycle_1 = test_poly(poly_5_05_rev_7, i);
-            printf("%lf\t", cycle_1);
-
-            cycle_1 = test_poly(poly_5_05_rev_8, i);
-            printf("%lf\t", cycle_1);
-
-            cycle_1 = test_poly(poly_5_05_3way, i);
-            printf("%lf\t", cycle_1);
-
-            cycle_1 = test_poly(poly_5_05_6way, i);
-            printf("%lf\t", cycle_1);
-
-            cycle_1 = test_poly(poly_5_05_9way, i);
-            printf("%lf\n", cycle_1);
+    double min = 10.0;
+    for (int i = 1; i <= 8; i++) {
+        for (int k = 1; k <= 8; k++) {
+            double CPE = 0.0;
+            int count = 0;
+            for (int j = 0; j < MAX_DEGREE; j += DEGREE_STEP) {
+                count++;
+                double cycle = test_poly(func_arr[i * k - 1], j);
+                // printf("cycle = %lf, degree = %d\n", cycle, j);
+                if (j != 0) {
+                    CPE += (cycle / j);
+                }
+            }
+            CPE /= count;
+            printf("Split = %d, Unroll = %d, CPE = %lf\n", i, k, CPE);
+            if (CPE < min) {
+                min = CPE;
+            }
         }
     }
 
+    return min;
+}
+
+int main(int argc, char *argv[])
+{
+    // implement 3 type of operation, which are default, plot and compare
+
+    if (argc == 1) {
+        // run default, altogether 64 cases
+        double result = default_test();
+        printf("Lowest CPE = %lf\n", result);
+    }
+
+    // check argument correctness
+    if (argc >= 2) {
+        if (!strcmp(argv[1], "default") && argc == 2) {
+            // same as no argument
+            // default op should have no further arguments
+            double result = default_test();
+            printf("Lowest CPE = %lf\n", result);
+        } else if (!strcmp(argv[1], "plot")) {
+            if (argc == 2) {
+                runtime_error_message(TOO_FEW_ARGS);
+            }
+        } else if (!strcmp(argv[1], "compare")) {
+            if (argc < 4) {  // at least 2 to compare
+                runtime_error_message(TOO_FEW_ARGS);
+            }
+
+            int x;
+            int y;
+            for (int i = 2; i < argc; i++) {
+            }
+        } else if (!strcmp(argv[1], "help")) {
+            help_message();
+        } else {
+            runtime_error_message(WRONG_ARGS);
+        }
+    }
+
+    printf("lol\n");
     return 0;
 }
