@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -O1 -Wall -Werror
-OBJS = poly_funcs_5_5.o poly_funcs_5_6.o ./dynamic_gen/dynamic_poly.o
+OBJS = poly_funcs_5_5.o poly_funcs_5_6.o ./dynamic_gen/gen_poly.o
 EXEC = test_poly
 CPU_FREQ = sudo cpupower frequency-set -g
 SUBDIR = ./dynamic_gen
@@ -15,7 +15,7 @@ $(GIT_HOOKS):
 
 .PHONY: plot1 plot2 plot3 plot4 all clean
 
-./dynamic_gen/dynamic_poly.o:
+./dynamic_gen/gen_poly.o:
 	$(MAKE) -C $(SUBDIR)
 
 $(EXEC): $(OBJS) $(EXEC).o

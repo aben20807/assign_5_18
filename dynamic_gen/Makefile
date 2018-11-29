@@ -1,16 +1,12 @@
 CC = gcc
-CFLAGS = -O1 -Wall
-GEN_EXEC = gen_poly
-DYNAMIC = dynamic_poly
-TARGETS = $(DYNAMIC).o
+CFLAGS = -O1 -Wall -Werror
+TARGETS = gen_poly.o
+DYNAMICS = dynamic_poly.c dynamic_poly.h
 
 all: $(TARGETS)
 
 $(TARGETS): %.o: %.c %.h
 	$(CC) $(CFLAGS) -c $<
-
-$(DYNAMIC).c: $(GEN_EXEC)
-	./$(GEN_EXEC)
 
 $(GEN_EXEC): $(GEN_EXEC).o
 	$(CC) $(CFLAGS) $(GEN_EXEC).o -o $@
@@ -19,4 +15,4 @@ $(GEN_EXEC): $(GEN_EXEC).o
 	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -f *.o $(GEN_EXEC) $(TARGETS) $(DYNAMIC).c $(DYNAMIC).h
+	rm -f *.o $(TARGETS) $(DYNAMICS)
