@@ -13,6 +13,7 @@ void gen_init(int func_num)
 
     /* c file */
     FILE *cf = fopen("dynamic_gen/dynamic_poly.c", "w");
+    fprintf(cf, "#include \"dynamic_poly.h\"\n");
     fprintf(cf, "const PolyFunc func_arr[] = {\n");
     for (int i = 0; i < func_num; i++) {
         fprintf(cf, "poly_%d,\n", i);
@@ -79,5 +80,6 @@ void gen_append_poly(int split_num, int unrol_num)
     }
     fprintf(cf, ";\n}\n");
     fclose(cf);
+
     func_cnt++;
 }
