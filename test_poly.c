@@ -83,7 +83,8 @@ void help_message()
     printf("\t      issue- shall we set maximum argument number?\n");
     printf("\tcompare: evaluate CPE for different argument,\n");
     printf("\t            and look for the best one\n");
-    printf("\thelp: show this help message again\n");
+    printf("\thelp: show this help message again\n\n");
+    printf("\tSAMPLE: ./test_poly compare 1,1 2,2 3,3\n");
 }
 
 void runtime_error_message(int type)
