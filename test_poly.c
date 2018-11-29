@@ -269,6 +269,7 @@ int main(int argc, char *argv[])
         } else if (!strcmp(argv[1], "plot")) {
             if (argc == 2) {
                 runtime_error_message(TOO_FEW_ARGS);
+                return 0;
             }
 
             gen_init(argc - 2);
@@ -288,10 +289,12 @@ int main(int argc, char *argv[])
 
             if (!plot_test(argc - 2, argv)) {
                 runtime_error_message(PLOT_ERROR);
+                return 0;
             }
         } else if (!strcmp(argv[1], "compare")) {
             if (argc < 4) {  // at least 2 to compare
                 runtime_error_message(TOO_FEW_ARGS);
+                return 0;
             }
 
             gen_init(argc - 2);
@@ -317,6 +320,7 @@ int main(int argc, char *argv[])
             help_message();
         } else {
             runtime_error_message(WRONG_ARGS);
+            return 0;
         }
     }
 
