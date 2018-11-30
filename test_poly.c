@@ -12,7 +12,8 @@ typedef double (*PolyFunc)(double a[], double x, long degree);
 #define TEST_TIMES 10000
 #define MAX_DEGREE 1000
 #define DEGREE_STEP 10
-#define CPU_FREQ 1400000000
+
+long CPU_FREQ;
 
 enum error_type { TOO_FEW_ARGS, NULL_RETURN, WRONG_ARGS, PLOT_ERROR };
 
@@ -159,6 +160,7 @@ double default_test()
         return 0;
     }
 
+    int func_count = 0;
     double min = 10.0;
     for (int i = 1; i <= 8; i++) {
         for (int k = 1; k <= 8; k++) {
@@ -166,12 +168,13 @@ double default_test()
             int count = 0;
             for (int j = 0; j < MAX_DEGREE; j += DEGREE_STEP) {
                 count++;
-                double cycle = test_poly(func_arr[i * k - 1], j);
+                double cycle = test_poly(func_arr[func_count], j);
                 // printf("cycle = %lf, degree = %d\n", cycle, j);
                 if (j != 0) {
                     CPE += (cycle / j);
                 }
             }
+            func_count++;
             CPE /= count;
             printf("Split = %d, Unroll = %d, CPE = %lf\n", i, k, CPE);
             if (CPE < min) {
@@ -250,6 +253,19 @@ int plot_test(int n, char *argv[])
 
 int main(int argc, char *argv[])
 {
+    FILE *cpu_file =
+        fopen("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
+    if (!cpu_file) {  // error cant read cpuinfo
+        return 0;
+    }
+
+    char info_line[20] = {0};
+    fgets(info_line, 20, cpu_file);
+    CPU_FREQ = atol(info_line) * 1000;
+    printf("Freq = %ld Hz\n", CPU_FREQ);
+
+    fclose(cpu_file);
+
     if (system("sudo cpupower frequency-set -g performance && sleep 1") == -1) {
         return 0;
     }
