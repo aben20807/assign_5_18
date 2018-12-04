@@ -13,9 +13,14 @@ typedef double (*PolyFunc)(double a[], double x, long degree);
 #define MAX_DEGREE 1000
 #define DEGREE_STEP 10
 
-long CPU_FREQ;
-
-enum error_type { TOO_FEW_ARGS, NULL_RETURN, WRONG_ARGS, PLOT_ERROR };
+enum error_type {
+    TOO_FEW_ARGS,
+    NULL_RETURN,
+    WRONG_ARGS,
+    PLOT_ERROR,
+    READ_ERROR,
+    COMPARE_ERROR
+};
 
 /* Record cycle count per test time of each degree */
 double exec_cyc[TEST_TIMES] = {0};
@@ -38,7 +43,7 @@ double tvgetf()
     return sec;
 }
 
-double test_poly(PolyFunc poly, long degree)
+double test_poly(PolyFunc poly, long degree, long cpu_freq)
 {
     /* Create test array */
     double a[degree + 1];
@@ -51,7 +56,7 @@ double test_poly(PolyFunc poly, long degree)
         double ans = poly(a, -1, degree);
         double t2 = tvgetf();
 
-        exec_cyc[i] = (t2 - t1) * CPU_FREQ;
+        exec_cyc[i] = (t2 - t1) * cpu_freq;
 
         /* Check correctness */
         if (ans != (double) degree / 2) {
@@ -103,12 +108,41 @@ void runtime_error_message(int type)
         printf("Error when creating func array\n");
         break;
     case PLOT_ERROR:
-        printf("Some error with plotting code...\n");
+        printf("Some error with plot code...\n");
+        break;
+    case COMPARE_ERROR:
+        printf("Some error with compare code...\n");
+        break;
+    case READ_ERROR:
+        printf("Check file IO and fgets...\n");
         break;
 
     default:
+        printf("Unknown error\n");
         help_message();
     }
+}
+
+void read_cpu_freq(long *cpu_freq)
+{
+    FILE *cpu_file =
+        fopen("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
+    if (!cpu_file) {  // error cant read cpuinfo
+        runtime_error_message(READ_ERROR);
+        return;
+    }
+
+    char info_line[20] = {0};
+    if (fgets(info_line, 20, cpu_file) == NULL) {
+        runtime_error_message(READ_ERROR);
+        fclose(cpu_file);
+        return;
+    }
+
+    *cpu_freq = atol(info_line) * 1000;
+    printf("Freq = %ld Hz\n", *cpu_freq);
+
+    fclose(cpu_file);
 }
 
 PolyFunc *load_function_array()
@@ -147,6 +181,8 @@ PolyFunc *load_function_array()
 double default_test()
 {
     // default test, find lowest CPE
+    long cpu_freq;
+    read_cpu_freq(&cpu_freq);
     gen_init(64);
     for (int i = 1; i <= 8; i++) {
         for (int j = 1; j <= 8; j++) {
@@ -168,7 +204,7 @@ double default_test()
             int count = 0;
             for (int j = 0; j < MAX_DEGREE; j += DEGREE_STEP) {
                 count++;
-                double cycle = test_poly(func_arr[func_count], j);
+                double cycle = test_poly(func_arr[func_count], j, cpu_freq);
                 // printf("cycle = %lf, degree = %d\n", cycle, j);
                 if (j != 0) {
                     CPE += (cycle / j);
@@ -186,22 +222,25 @@ double default_test()
     return min;
 }
 
-double compare_test(int n, int *index)
+int compare_test(int n, int *index, double *result)
 {
+    long cpu_freq;
+    read_cpu_freq(&cpu_freq);
+
     PolyFunc *func_arr = load_function_array();
     if (func_arr == NULL) {
         runtime_error_message(NULL_RETURN);
         return 0;
     }
 
-    double min = 10.0;
+    double min = 12.0;
     for (int i = 0; i < n; i++) {
         double CPE = 0.0;
         int count = 0;
         for (int j = 0; j < MAX_DEGREE; j += DEGREE_STEP) {
             count++;
-            double cycle = test_poly(func_arr[i], j);
-            // printf("cycle = %lf, degree = %d\n", cycle, j);
+            double cycle = test_poly(func_arr[i], j, cpu_freq);
+
             if (j != 0) {
                 CPE += (cycle / j);
             }
@@ -213,11 +252,15 @@ double compare_test(int n, int *index)
         }
     }
 
-    return min;
+    *result = min;
+    return 1;
 }
 
 int plot_test(int n, char *argv[])
 {
+    long cpu_freq;
+    read_cpu_freq(&cpu_freq);
+
     PolyFunc *func_arr = load_function_array();
     if (func_arr == NULL) {
         runtime_error_message(NULL_RETURN);
@@ -232,7 +275,7 @@ int plot_test(int n, char *argv[])
         fprintf(plot_output, "%d ", j);
         double cycle;
         for (int i = 0; i < n; i++) {
-            cycle = test_poly(func_arr[i], j);
+            cycle = test_poly(func_arr[i], j, cpu_freq);
             fprintf(plot_output, "%lf ", cycle);
         }
         fprintf(plot_output, "\n");
@@ -251,39 +294,50 @@ int plot_test(int n, char *argv[])
     return 1;
 }
 
+void append_argument(char *argv)
+{
+    char *temp = strdup(argv);
+
+    /* Do seperation */
+    char *pch;
+    pch = strtok(temp, ",");
+    int x = atoi(pch);
+    pch = strtok(NULL, ",");
+    int y = atoi(pch);
+
+    free(temp);
+
+    printf("Creating %d splits and %d unroll\n", x, y);
+    gen_append_poly(x, y);
+}
+
 int main(int argc, char *argv[])
 {
-    FILE *cpu_file =
-        fopen("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
-    if (!cpu_file) {  // error cant read cpuinfo
-        return 0;
-    }
-
-    char info_line[20] = {0};
-    fgets(info_line, 20, cpu_file);
-    CPU_FREQ = atol(info_line) * 1000;
-    printf("Freq = %ld Hz\n", CPU_FREQ);
-
-    fclose(cpu_file);
-
     if (system("sudo cpupower frequency-set -g performance && sleep 1") == -1) {
         return 0;
     }
-    // implement 3 type of operation, which are default, plot and compare
+
+    /* Implement 3 type of operations: default, plot and compare */
+
+    /* Default case */
     if (argc == 1) {
-        // run default, altogether 64 cases
         double result = default_test();
         printf("Lowest CPE = %lf\n", result);
     }
 
-    // check argument correctness
+    /* check argument correctness */
     if (argc >= 2) {
         if (!strcmp(argv[1], "default") && argc == 2) {
-            // same as no argument
-            // default op should have no further arguments
+            /* default op should have no further arguments */
             double result = default_test();
             printf("Lowest CPE = %lf\n", result);
+
         } else if (!strcmp(argv[1], "plot")) {
+            /*
+                provide at least 1 more argument to plot
+                Ex: ./test_poly plot 1,1
+            */
+
             if (argc == 2) {
                 runtime_error_message(TOO_FEW_ARGS);
                 return 0;
@@ -291,24 +345,20 @@ int main(int argc, char *argv[])
 
             gen_init(argc - 2);
             for (int i = 2; i < argc; i++) {
-                char *temp = strdup(argv[i]);
-                char *pch;
-                pch = strtok(temp, ",");
-                int x = atoi(pch);
-                pch = strtok(NULL, ",");
-                int y = atoi(pch);
-
-                free(temp);
-
-                printf("Creating %d splits and %d unroll\n", x, y);
-                gen_append_poly(x, y);
+                append_argument(argv[i]);
             }
 
             if (!plot_test(argc - 2, argv)) {
                 runtime_error_message(PLOT_ERROR);
                 return 0;
             }
+
         } else if (!strcmp(argv[1], "compare")) {
+            /*
+                provide at least 2 more argument to compare
+                Ex: ./test_poly compare 1,1 2,2 3,3
+            */
+
             if (argc < 4) {  // at least 2 to compare
                 runtime_error_message(TOO_FEW_ARGS);
                 return 0;
@@ -316,23 +366,18 @@ int main(int argc, char *argv[])
 
             gen_init(argc - 2);
             for (int i = 2; i < argc; i++) {
-                char *temp = strdup(argv[i]);
-                char *pch;
-                pch = strtok(temp, ",");
-                int x = atoi(pch);
-                pch = strtok(NULL, ",");
-                int y = atoi(pch);
-
-                free(temp);
-
-                printf("Creating %d splits and %d unroll\n", x, y);
-                gen_append_poly(x, y);
+                append_argument(argv[i]);
             }
 
             int index;
-            double result = compare_test(argc - 2, &index);
+            double result;
+            if (!compare_test(argc - 2, &index, &result)) {
+                runtime_error_message(COMPARE_ERROR);
+            }
+
             printf("Best split & unroll: %s\n", argv[index + 2]);
             printf("Lowest CPE = %lf\n", result);
+
         } else if (!strcmp(argv[1], "help")) {
             help_message();
         } else {

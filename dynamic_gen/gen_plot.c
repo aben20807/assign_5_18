@@ -7,7 +7,7 @@ void gen_plot(int n, char *argv[])
     fprintf(pf, "set ylabel 'cycle'\n");
     fprintf(pf, "set xlabel 'degree'\n");
 
-    fprintf(pf, "set ytics 200\n");
+    fprintf(pf, "set ytics 500\n");
     fprintf(pf, "set xtics 100\n");
     fprintf(pf, "set xtics rotate by -60\n");
 

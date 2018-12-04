@@ -3,6 +3,7 @@
 *.out
 *.png
 *.txt
+*.gp
 
 # dynamic files
 dynamic_poly.c
