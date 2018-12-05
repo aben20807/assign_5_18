@@ -17,9 +17,10 @@ enum error_type {
     TOO_FEW_ARGS,
     NULL_RETURN,
     WRONG_ARGS,
+    DEFAULT_ERROR,
     PLOT_ERROR,
-    READ_ERROR,
-    COMPARE_ERROR
+    COMPARE_ERROR,
+    READ_ERROR
 };
 
 /* Record cycle count per test time of each degree */
@@ -178,7 +179,7 @@ PolyFunc *load_function_array()
     return func_arr;
 }
 
-double default_test()
+int default_test(int *index_unroll, int *index_split, double *result)
 {
     // default test, find lowest CPE
     long cpu_freq;
@@ -210,16 +211,19 @@ double default_test()
                     CPE += (cycle / j);
                 }
             }
-            func_count++;
             CPE /= count;
             printf("Split = %d, Unroll = %d, CPE = %lf\n", i, k, CPE);
             if (CPE < min) {
+                *index_unroll = i;
+                *index_split = k;
                 min = CPE;
             }
+            func_count++;
         }
     }
 
-    return min;
+    *result = min;
+    return 1;
 }
 
 int compare_test(int n, int *index, double *result)
@@ -321,7 +325,14 @@ int main(int argc, char *argv[])
 
     /* Default case */
     if (argc == 1) {
-        double result = default_test();
+        int index_unroll;
+        int index_split;
+        double result;
+        if (!default_test(&index_unroll, &index_split, &result)) {
+            runtime_error_message(DEFAULT_ERROR);
+            return 0;
+        }
+        printf("Best split & unroll: %d,%d\n", index_unroll, index_split);
         printf("Lowest CPE = %lf\n", result);
     }
 
@@ -329,7 +340,14 @@ int main(int argc, char *argv[])
     if (argc >= 2) {
         if (!strcmp(argv[1], "default") && argc == 2) {
             /* default op should have no further arguments */
-            double result = default_test();
+            int index_unroll;
+            int index_split;
+            double result;
+            if (!default_test(&index_unroll, &index_split, &result)) {
+                runtime_error_message(DEFAULT_ERROR);
+                return 0;
+            }
+            printf("Best split & unroll: %d,%d\n", index_unroll, index_split);
             printf("Lowest CPE = %lf\n", result);
 
         } else if (!strcmp(argv[1], "plot")) {
@@ -380,6 +398,7 @@ int main(int argc, char *argv[])
 
         } else if (!strcmp(argv[1], "help")) {
             help_message();
+
         } else {
             runtime_error_message(WRONG_ARGS);
             return 0;

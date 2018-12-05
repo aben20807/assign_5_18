@@ -1,32 +1,24 @@
 # CS:APP assignment 5.18
 `Computer Systems: A Programmer's Perspective`
 
-This is an assignment to optimize the algorithm shown in practice 5.5 and 5.6. We attempt to use the methods introduced in chapter 5 to attain minimum CPE.
+This is formerly an assignment to optimize the algorithm shown in practice 5.5 and 5.6. We attempt to use the methods introduced in chapter 5 to attain minimum CPE. And now we made this repo a basic benchmarking program which will run through every test cases consisting of different loop unrolling and loop splitting method, and will give a result on which of the method is the best depending on your machine.
+
+## We require your help :D
+
+Please kindly run this program the default way and copy the result to this markdown website [here]().
 
 ## Dependencies
 
-The following test code were tested in Ubuntu 18.04. Before running the code you are advised to first install the dependencies which included the 'PAPI' library (Performance Application Programming Interface).
+For performance measurement, you must have the package `cpupower` installed in your machine. For instances, run the below command on Ubuntu:
+```
+$ sudo apt install linux-tools-common
+```
+and then check the other package needed (machine wise so we can't list them here) and install them. Mostly are linux kernel tools.
 
-```
-$ sudo apt-get install libpapi-dev
-```
 We use **gnuplot** to plot the performance comparison graph. So you need it installed in your system.
-
-For Arch linux user, the package contaning the papi-library is named `papi` and can be found in the AUR(Arch User Repository).
+```
+$ sudo apt install gnuplot
+```
 
 ## Running the test
-```
-$ make
-```
-Run the above command to compile the source code
-
-```
-$ make plot1
-```
-There are altogether three options which are -- plot1, plot2, plot3, each of them generates comparison graph between different targets.
-*   `$ make plot1`
-    Generates comparison graph between original algorithm of 5.5 and 5.6.
-*   `$ make plot2`
-    Generates comparison graph between original algorithm of 5.5 and optimized 5.5.
-*   `$ make plot3`
-    Generates comparison graph between original algorithm of 5.6 and optimized 5.6.
+`TO BE UPDATED`
