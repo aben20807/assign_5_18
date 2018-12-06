@@ -29,12 +29,10 @@ $(EXEC): $(OBJS) $(EXEC).o
 boost:
 	@$(CPU_FREQ) performance > /dev/null
 	@sleep 1
-	@cat /proc/cpuinfo | grep MHz
 
 recover:
 	@$(CPU_FREQ) powersave > /dev/null
 	@sleep 1
-	@cat /proc/cpuinfo | grep MHz
 
 default: $(EXEC) boost
 	./$(EXEC) default

@@ -125,6 +125,24 @@ long read_cpu_freq()
     return atol(info_line) * 1000;
 }
 
+void print_cpu_model()
+{
+    FILE *cpu = fopen("/proc/cpuinfo", "r");
+
+    char info_line[200];
+    while (fgets(info_line, 200, cpu) != NULL) {
+        char *pch;
+        pch = strstr(info_line, "model name");
+        if (pch) {
+            pch = strstr(info_line, "Intel");
+            printf("%s", pch);
+            break;
+        }
+    }
+
+    fclose(cpu);
+}
+
 void separate_argv(char *argv, int *split_num, int *unrol_num)
 {
     char *temp = strdup(argv);
@@ -139,7 +157,7 @@ double default_test(int *best_unroll_idx, int *best_split_idx)
 {
     // default test, find lowest CPE among 64 poly functions
     long cpu_freq = read_cpu_freq();
-    printf("freq = %ld hz\n", cpu_freq);
+    printf("CPU max freq = %ld hz\n", cpu_freq);
 
     int func_count = 0;
     double min = 100.0;
@@ -153,7 +171,7 @@ double default_test(int *best_unroll_idx, int *best_split_idx)
                 CPE += (cycle / k);
             }
             CPE /= (MAX_DEGREE / DEGREE_STEP - 1);
-            printf("Split = %d, Unroll = %d, CPE = %lf\n", i, j, CPE);
+            // printf("Split = %d, Unroll = %d, CPE = %lf\n", i, j, CPE);
             if (CPE < min) {
                 *best_unroll_idx = i;
                 *best_split_idx = j;
@@ -223,6 +241,8 @@ void plot_test(int func_num, char *argv[])
 
 int main(int argc, char *argv[])
 {
+    printf("Please copy the result between lines\n--------------------\n");
+    print_cpu_model();
     /* Implement 3 type of operations: default, plot and compare */
     /* check argument correctness */
     if (argc >= 2) {
@@ -265,6 +285,7 @@ int main(int argc, char *argv[])
         }
     }
 
+    printf("--------------------\n");
     printf("Program closing...\n");
     return 0;
 }
