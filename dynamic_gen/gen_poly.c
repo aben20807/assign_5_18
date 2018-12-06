@@ -2,17 +2,28 @@
 
 static int func_cnt = 0;
 
+int main()
+{
+    gen_init(64);
+    for (int i = 1; i <= 8; i++) {
+        for (int j = 1; j <= 8; j++) {
+            gen_append_poly(i, j);
+        }
+    }
+    return 0;
+}
+
 void gen_init(int func_num)
 {
     /* header file */
-    FILE *hf = fopen("dynamic_gen/dynamic_poly.h", "w");
+    FILE *hf = fopen("dynamic_poly.h", "w");
     fprintf(hf, "typedef double (*PolyFunc)");
     fprintf(hf, "(double a[], double x, long degree);\n");
     fprintf(hf, "extern const PolyFunc func_arr[];\n");
     fclose(hf);
 
     /* c file */
-    FILE *cf = fopen("dynamic_gen/dynamic_poly.c", "w");
+    FILE *cf = fopen("dynamic_poly.c", "w");
     fprintf(cf, "#include \"dynamic_poly.h\"\n");
     fprintf(cf, "const PolyFunc func_arr[] = {\n");
     for (int i = 0; i < func_num; i++) {
@@ -25,13 +36,13 @@ void gen_init(int func_num)
 void gen_append_poly(int split_num, int unrol_num)
 {
     /* header file */
-    FILE *hf = fopen("dynamic_gen/dynamic_poly.h", "a");
+    FILE *hf = fopen("dynamic_poly.h", "a");
     fprintf(hf, "double poly_%d(double a[], double x, long degree);\n",
             func_cnt);
     fclose(hf);
 
     /* c file */
-    FILE *cf = fopen("dynamic_gen/dynamic_poly.c", "a");
+    FILE *cf = fopen("dynamic_poly.c", "a");
     /* function name */
     fprintf(cf, "double poly_%d(double a[], double x, long degree)", func_cnt);
     fprintf(cf, "{ //(%d, %d)\n", split_num, unrol_num);

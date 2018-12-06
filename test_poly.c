@@ -4,8 +4,8 @@
 #include <string.h>
 #include <time.h>
 
+#include "dynamic_gen/dynamic_poly.h"
 #include "dynamic_gen/gen_plot.h"
-#include "dynamic_gen/gen_poly.h"
 
 typedef double (*PolyFunc)(double a[], double x, long degree);
 
@@ -99,315 +99,206 @@ void runtime_error_message(int type)
     switch (type) {
     case WRONG_ARGS:
         printf("Wrong arguments, please check the following help\n");
-        help_message();
         break;
     case TOO_FEW_ARGS:
         printf("Too few arguments, please check the following help\n");
-        help_message();
         break;
     case NULL_RETURN:
         printf("Error when creating func array\n");
-        break;
+        goto exit_program;
     case PLOT_ERROR:
         printf("Some error with plot code...\n");
-        break;
+        goto exit_program;
     case COMPARE_ERROR:
         printf("Some error with compare code...\n");
-        break;
+        goto exit_program;
     case READ_ERROR:
         printf("Check file IO and fgets...\n");
-        break;
-
+        goto exit_program;
     default:
         printf("Unknown error\n");
-        help_message();
     }
+    help_message();
+exit_program:
+    exit(1);
 }
 
-void read_cpu_freq(long *cpu_freq)
+long read_cpu_freq()
 {
     FILE *cpu_file =
         fopen("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
     if (!cpu_file) {  // error cant read cpuinfo
         runtime_error_message(READ_ERROR);
-        return;
+        return -1;
     }
 
     char info_line[20] = {0};
     if (fgets(info_line, 20, cpu_file) == NULL) {
         runtime_error_message(READ_ERROR);
         fclose(cpu_file);
-        return;
+        return -1;
     }
-
-    *cpu_freq = atol(info_line) * 1000;
-    printf("Freq = %ld Hz\n", *cpu_freq);
-
     fclose(cpu_file);
+    return atol(info_line) * 1000;
 }
 
-PolyFunc *load_function_array()
+void separate_argv(char *argv, int *split_num, int *unrol_num)
 {
-    if (system("clang-format -i dynamic_gen/dynamic_poly.c") == -1) {
-        return NULL;
-    }
-    printf("Successfully formatted\n");
-
-    if (system("gcc -c -fPIC dynamic_gen/dynamic_poly.c") == -1) {
-        return NULL;
-    }
-    printf("Successfully compiled dynamic.c\n");
-
-    if (system("gcc -o libdynamic_poly.so -shared dynamic_poly.o") == -1) {
-        return NULL;
-    }
-    printf("Successfully create dynamic library\n");
-
-    void *handle = dlopen("./libdynamic_poly.so", RTLD_LAZY);
-    if (!handle) {
-        fprintf(stderr, "%s\n", dlerror());
-        exit(EXIT_FAILURE);
-    }
-    dlerror();
-    PolyFunc *func_arr = dlsym(handle, "func_arr");
-
-    char *error;
-    if ((error = dlerror()) != NULL) {
-        fprintf(stderr, "%s\n", error);
-        exit(EXIT_FAILURE);
-    }
-    return func_arr;
+    char *temp = strdup(argv);
+    /* Do seperation */
+    *split_num = atoi(strtok(temp, ","));
+    *unrol_num = atoi(strtok(NULL, ","));
+    free(temp);
+    printf("Using %d splits and %d unroll\n", *split_num, *unrol_num);
 }
 
-int default_test(int *index_unroll, int *index_split, double *result)
+double default_test(int *best_unroll_idx, int *best_split_idx)
 {
-    // default test, find lowest CPE
-    long cpu_freq;
-    read_cpu_freq(&cpu_freq);
-    gen_init(64);
-    for (int i = 1; i <= 8; i++) {
-        for (int j = 1; j <= 8; j++) {
-            gen_append_poly(i, j);
-        }
-    }
-
-    PolyFunc *func_arr = load_function_array();
-    if (func_arr == NULL) {
-        runtime_error_message(NULL_RETURN);
-        return 0;
-    }
+    // default test, find lowest CPE among 64 poly functions
+    long cpu_freq = read_cpu_freq();
+    printf("freq = %ld hz\n", cpu_freq);
 
     int func_count = 0;
-    double min = 10.0;
+    double min = 100.0;
     for (int i = 1; i <= 8; i++) {
-        for (int k = 1; k <= 8; k++) {
+        for (int j = 1; j <= 8; j++) {
             double CPE = 0.0;
-            int count = 0;
-            for (int j = 0; j < MAX_DEGREE; j += DEGREE_STEP) {
-                count++;
-                double cycle = test_poly(func_arr[func_count], j, cpu_freq);
-                // printf("cycle = %lf, degree = %d\n", cycle, j);
-                if (j != 0) {
-                    CPE += (cycle / j);
-                }
+            // if k is 0 cannot compute the ratio (CPE / k)
+            for (int k = DEGREE_STEP; k < MAX_DEGREE; k += DEGREE_STEP) {
+                double cycle = test_poly(func_arr[func_count], k, cpu_freq);
+                // printf("cycle = %lf, degree = %d\n", cycle, k);
+                CPE += (cycle / k);
             }
-            CPE /= count;
-            printf("Split = %d, Unroll = %d, CPE = %lf\n", i, k, CPE);
+            CPE /= (MAX_DEGREE / DEGREE_STEP - 1);
+            printf("Split = %d, Unroll = %d, CPE = %lf\n", i, j, CPE);
             if (CPE < min) {
-                *index_unroll = i;
-                *index_split = k;
+                *best_unroll_idx = i;
+                *best_split_idx = j;
                 min = CPE;
             }
             func_count++;
         }
     }
-
-    *result = min;
-    return 1;
+    return min;
 }
 
-int compare_test(int n, int *index, double *result)
+double compare_test(int func_num, int *min_cpe_idx, char *argv[])
 {
-    long cpu_freq;
-    read_cpu_freq(&cpu_freq);
+    long cpu_freq = read_cpu_freq();
+    printf("freq = %ld hz\n", cpu_freq);
 
-    PolyFunc *func_arr = load_function_array();
-    if (func_arr == NULL) {
-        runtime_error_message(NULL_RETURN);
-        return 0;
+    int split_num[64];
+    int unrol_num[64];
+    for (int i = 0; i < func_num; i++) {
+        separate_argv(argv[i + 2], &split_num[i], &unrol_num[i]);
     }
 
-    double min = 12.0;
-    for (int i = 0; i < n; i++) {
+    double min = 100.0;
+    for (int i = 0; i < func_num; i++) {
         double CPE = 0.0;
-        int count = 0;
-        for (int j = 0; j < MAX_DEGREE; j += DEGREE_STEP) {
-            count++;
-            double cycle = test_poly(func_arr[i], j, cpu_freq);
-
-            if (j != 0) {
-                CPE += (cycle / j);
-            }
+        // if j is 0 cannot compute the ratio (CPE / j)
+        for (int j = DEGREE_STEP; j < MAX_DEGREE; j += DEGREE_STEP) {
+            int func_idx = (split_num[i] - 1) * 8 + (unrol_num[i] - 1);
+            double cycle = test_poly(func_arr[func_idx], j, cpu_freq);
+            CPE += (cycle / j);
         }
-        CPE /= count;
+        CPE /= (MAX_DEGREE / DEGREE_STEP - 1);
         if (CPE < min) {
-            *index = i;
+            *min_cpe_idx = i;
             min = CPE;
         }
     }
-
-    *result = min;
-    return 1;
+    return min;
 }
 
-int plot_test(int n, char *argv[])
+void plot_test(int func_num, char *argv[])
 {
-    long cpu_freq;
-    read_cpu_freq(&cpu_freq);
+    long cpu_freq = read_cpu_freq();
+    printf("freq = %ld hz\n", cpu_freq);
 
-    PolyFunc *func_arr = load_function_array();
-    if (func_arr == NULL) {
-        runtime_error_message(NULL_RETURN);
-        return 0;
+    gen_plot(func_num, argv);
+
+    int split_num[64];
+    int unrol_num[64];
+    for (int i = 0; i < func_num; i++) {
+        separate_argv(argv[i + 2], &split_num[i], &unrol_num[i]);
     }
 
-    gen_plot(n, argv);
-
     FILE *plot_output = fopen("output.txt", "w");
-
-    for (int j = 0; j < MAX_DEGREE; j += DEGREE_STEP) {
-        fprintf(plot_output, "%d ", j);
+    for (int i = 0; i < MAX_DEGREE; i += DEGREE_STEP) {
+        fprintf(plot_output, "%d ", i);
         double cycle;
-        for (int i = 0; i < n; i++) {
-            cycle = test_poly(func_arr[i], j, cpu_freq);
+        for (int j = 0; j < func_num; j++) {
+            int func_idx = (split_num[j] - 1) * 8 + (unrol_num[j] - 1);
+            cycle = test_poly(func_arr[func_idx], i, cpu_freq);
             fprintf(plot_output, "%lf ", cycle);
         }
         fprintf(plot_output, "\n");
     }
-
     fclose(plot_output);
-
-    if (system("gnuplot dynamic_gen/plot.gp") == -1) {
-        return 0;
-    }
-
-    if (system("eog poly.png") == -1) {
-        return 0;
-    }
-
-    return 1;
-}
-
-void append_argument(char *argv)
-{
-    char *temp = strdup(argv);
-
-    /* Do seperation */
-    char *pch;
-    pch = strtok(temp, ",");
-    int x = atoi(pch);
-    pch = strtok(NULL, ",");
-    int y = atoi(pch);
-
-    free(temp);
-
-    printf("Creating %d splits and %d unroll\n", x, y);
-    gen_append_poly(x, y);
+    // XXX
+    // if (system("gnuplot dynamic_gen/plot.gp") == -1) {
+    //     return 0;
+    // }
+    //
+    // if (system("eog poly.png") == -1) {
+    //     return 0;
+    // }
 }
 
 int main(int argc, char *argv[])
 {
-    if (system("sudo cpupower frequency-set -g performance && sleep 1") == -1) {
-        return 0;
-    }
-
     /* Implement 3 type of operations: default, plot and compare */
 
     /* Default case */
     if (argc == 1) {
-        int index_unroll;
-        int index_split;
-        double result;
-        if (!default_test(&index_unroll, &index_split, &result)) {
-            runtime_error_message(DEFAULT_ERROR);
-            return 0;
-        }
-        printf("Best split & unroll: %d,%d\n", index_unroll, index_split);
-        printf("Lowest CPE = %lf\n", result);
+        // XXX
     }
 
     /* check argument correctness */
     if (argc >= 2) {
         if (!strcmp(argv[1], "default") && argc == 2) {
             /* default op should have no further arguments */
-            int index_unroll;
-            int index_split;
-            double result;
-            if (!default_test(&index_unroll, &index_split, &result)) {
-                runtime_error_message(DEFAULT_ERROR);
-                return 0;
-            }
-            printf("Best split & unroll: %d,%d\n", index_unroll, index_split);
-            printf("Lowest CPE = %lf\n", result);
-
+            int best_unroll_idx;
+            int best_split_idx;
+            double min_cpe = default_test(&best_unroll_idx, &best_split_idx);
+            printf("Best split & unroll: %d,%d\n", best_unroll_idx,
+                   best_split_idx);
+            printf("Lowest CPE = %lf\n", min_cpe);
         } else if (!strcmp(argv[1], "plot")) {
             /*
-                provide at least 1 more argument to plot
-                Ex: ./test_poly plot 1,1
-            */
-
+             *  provide at least 1 more argument to plot
+             *  Ex: ./test_poly plot 1,1
+             */
             if (argc == 2) {
                 runtime_error_message(TOO_FEW_ARGS);
                 return 0;
             }
-
-            gen_init(argc - 2);
-            for (int i = 2; i < argc; i++) {
-                append_argument(argv[i]);
-            }
-
-            if (!plot_test(argc - 2, argv)) {
-                runtime_error_message(PLOT_ERROR);
-                return 0;
-            }
-
+            plot_test(argc - 2, argv);
         } else if (!strcmp(argv[1], "compare")) {
             /*
-                provide at least 2 more argument to compare
-                Ex: ./test_poly compare 1,1 2,2 3,3
-            */
-
+             *  provide at least 2 more argument to compare
+             *  Ex: ./test_poly compare 1,1 2,2 3,3
+             */
             if (argc < 4) {  // at least 2 to compare
                 runtime_error_message(TOO_FEW_ARGS);
                 return 0;
             }
-
-            gen_init(argc - 2);
-            for (int i = 2; i < argc; i++) {
-                append_argument(argv[i]);
-            }
-
-            int index;
-            double result;
-            if (!compare_test(argc - 2, &index, &result)) {
-                runtime_error_message(COMPARE_ERROR);
-            }
-
-            printf("Best split & unroll: %s\n", argv[index + 2]);
-            printf("Lowest CPE = %lf\n", result);
-
+            int min_cpe_idx;
+            double min_cpe = compare_test(argc - 2, &min_cpe_idx, argv);
+            printf("Best split & unroll: %s\n", argv[min_cpe_idx + 2]);
+            printf("Lowest CPE = %lf\n", min_cpe);
         } else if (!strcmp(argv[1], "help")) {
             help_message();
-
         } else {
             runtime_error_message(WRONG_ARGS);
             return 0;
         }
     }
 
-    if (system("sudo cpupower frequency-set -g powersave") == -1) {
-        return 0;
-    }
+    // if (system("sudo cpupower frequency-set -g powersave") == -1) {
+    //     return 0;
+    // }
 
     printf("Program closing...\n");
     return 0;
