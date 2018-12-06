@@ -13,15 +13,7 @@ typedef double (*PolyFunc)(double a[], double x, long degree);
 #define MAX_DEGREE 1000
 #define DEGREE_STEP 10
 
-enum error_type {
-    TOO_FEW_ARGS,
-    NULL_RETURN,
-    WRONG_ARGS,
-    DEFAULT_ERROR,
-    PLOT_ERROR,
-    COMPARE_ERROR,
-    READ_ERROR
-};
+enum error_type { TOO_FEW_ARGS, WRONG_ARGS, READ_ERROR };
 
 /* Record cycle count per test time of each degree */
 double exec_cyc[TEST_TIMES] = {0};
@@ -103,15 +95,6 @@ void runtime_error_message(int type)
     case TOO_FEW_ARGS:
         printf("Too few arguments, please check the following help\n");
         break;
-    case NULL_RETURN:
-        printf("Error when creating func array\n");
-        goto exit_program;
-    case PLOT_ERROR:
-        printf("Some error with plot code...\n");
-        goto exit_program;
-    case COMPARE_ERROR:
-        printf("Some error with compare code...\n");
-        goto exit_program;
     case READ_ERROR:
         printf("Check file IO and fgets...\n");
         goto exit_program;
@@ -236,25 +219,11 @@ void plot_test(int func_num, char *argv[])
         fprintf(plot_output, "\n");
     }
     fclose(plot_output);
-    // XXX
-    // if (system("gnuplot dynamic_gen/plot.gp") == -1) {
-    //     return 0;
-    // }
-    //
-    // if (system("eog poly.png") == -1) {
-    //     return 0;
-    // }
 }
 
 int main(int argc, char *argv[])
 {
     /* Implement 3 type of operations: default, plot and compare */
-
-    /* Default case */
-    if (argc == 1) {
-        // XXX
-    }
-
     /* check argument correctness */
     if (argc >= 2) {
         if (!strcmp(argv[1], "default") && argc == 2) {
@@ -295,10 +264,6 @@ int main(int argc, char *argv[])
             return 0;
         }
     }
-
-    // if (system("sudo cpupower frequency-set -g powersave") == -1) {
-    //     return 0;
-    // }
 
     printf("Program closing...\n");
     return 0;
