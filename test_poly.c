@@ -9,6 +9,13 @@
 
 typedef double (*PolyFunc)(double a[], double x, long degree);
 
+typedef struct _RunData RunData;
+struct _RunData {
+    int unrol_idx;
+    int split_idx;
+    double cpe;
+} run_data[64];
+
 #define TEST_TIMES 10000
 #define MAX_DEGREE 1000
 #define DEGREE_STEP 10
@@ -18,9 +25,16 @@ enum error_type { TOO_FEW_ARGS, WRONG_ARGS, READ_ERROR };
 /* Record cycle count per test time of each degree */
 double exec_cyc[TEST_TIMES] = {0};
 
-int compare(const void *a, const void *b)
+int cyc_cmp(const void *a, const void *b)
 {
     return (*(double *) a - *(double *) b);
+}
+
+int run_data_cmp(const void *a, const void *b)
+{
+    RunData *r1 = (RunData *) a;
+    RunData *r2 = (RunData *) b;
+    return ((double) (r1->cpe) * 100000 - (double) (r2->cpe) * 100000);
 }
 
 double tvgetf()
@@ -61,7 +75,7 @@ double test_poly(PolyFunc poly, long degree, long cpu_freq)
 
     /* Exclude extreme values and calculate the average */
     double total_cyc = 0;
-    qsort(exec_cyc, TEST_TIMES, sizeof(double), compare);
+    qsort(exec_cyc, TEST_TIMES, sizeof(double), cyc_cmp);
     int extreme_num = TEST_TIMES / 20;
     for (int i = 0 + extreme_num; i < TEST_TIMES - extreme_num; i++) {
         total_cyc += exec_cyc[i];
@@ -172,6 +186,9 @@ double default_test(int *best_unroll_idx, int *best_split_idx)
             }
             CPE /= (MAX_DEGREE / DEGREE_STEP - 1);
             // printf("Split = %d, Unroll = %d, CPE = %lf\n", i, j, CPE);
+            run_data[func_count].split_idx = i;
+            run_data[func_count].unrol_idx = j;
+            run_data[func_count].cpe = CPE;
             if (CPE < min) {
                 *best_unroll_idx = i;
                 *best_split_idx = j;
@@ -250,10 +267,13 @@ int main(int argc, char *argv[])
             /* default op should have no further arguments */
             int best_unroll_idx;
             int best_split_idx;
-            double min_cpe = default_test(&best_unroll_idx, &best_split_idx);
-            printf("Best split & unroll: %d,%d\n", best_unroll_idx,
-                   best_split_idx);
-            printf("Lowest CPE = %lf\n", min_cpe);
+            default_test(&best_unroll_idx, &best_split_idx);
+
+            qsort(run_data, 64, sizeof(run_data[0]), run_data_cmp);
+            for (int i = 0; i < 3; i++) {
+                printf("%d,%d: %lf\n", run_data[i].split_idx,
+                       run_data[i].unrol_idx, run_data[i].cpe);
+            }
         } else if (!strcmp(argv[1], "plot")) {
             /*
              *  provide at least 1 more argument to plot
