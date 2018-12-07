@@ -180,9 +180,9 @@ double default_test(int *best_unroll_idx, int *best_split_idx)
     int func_count = 0;
     double min = 100.0;
     for (int i = 1; i <= SPLIT_MAX; i++) {
-        printf(".");
-        fflush(stdout);
         for (int j = 1; j <= UNROL_MAX; j++) {
+            printf("\r[%*d/%d]", 2, func_count + 1, FUNC_NUM);
+            fflush(stdout);
             double CPE = 0.0;
             // if k is 0 cannot compute the ratio (CPE / k)
             for (int k = DEGREE_STEP; k < MAX_DEGREE; k += DEGREE_STEP) {
@@ -203,9 +203,8 @@ double default_test(int *best_unroll_idx, int *best_split_idx)
             func_count++;
         }
     }
-    for (int i = 1; i <= SPLIT_MAX; i++) {
-        printf("\b");
-    }
+    printf("\r                \r");
+    fflush(stdout);
     return min;
 }
 
@@ -279,7 +278,7 @@ int main(int argc, char *argv[])
             default_test(&best_unroll_idx, &best_split_idx);
 
             qsort(run_data, FUNC_NUM, sizeof(run_data[0]), run_data_cmp);
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 5; i++) {
                 printf("%d,%d: %lf\n", run_data[i].split_idx,
                        run_data[i].unrol_idx, run_data[i].cpe);
             }
