@@ -9,16 +9,20 @@
 
 typedef double (*PolyFunc)(double a[], double x, long degree);
 
+#define TEST_TIMES 10000
+#define MAX_DEGREE 1000
+#define DEGREE_STEP 10
+#define SPLIT_MAX 8
+#define UNROL_MAX 10
+#define FUNC_NUM SPLIT_MAX *UNROL_MAX
+
 typedef struct _RunData RunData;
 struct _RunData {
     int unrol_idx;
     int split_idx;
     double cpe;
-} run_data[64];
+} run_data[FUNC_NUM];
 
-#define TEST_TIMES 10000
-#define MAX_DEGREE 1000
-#define DEGREE_STEP 10
 
 enum error_type { TOO_FEW_ARGS, WRONG_ARGS, READ_ERROR };
 
@@ -169,14 +173,16 @@ void separate_argv(char *argv, int *split_num, int *unrol_num)
 
 double default_test(int *best_unroll_idx, int *best_split_idx)
 {
-    // default test, find lowest CPE among 64 poly functions
+    // default test, find lowest CPE among FUNC_NUM poly functions
     long cpu_freq = read_cpu_freq();
     printf("CPU max freq = %ld hz\n", cpu_freq);
 
     int func_count = 0;
     double min = 100.0;
-    for (int i = 1; i <= 8; i++) {
-        for (int j = 1; j <= 8; j++) {
+    for (int i = 1; i <= SPLIT_MAX; i++) {
+        printf(".");
+        fflush(stdout);
+        for (int j = 1; j <= UNROL_MAX; j++) {
             double CPE = 0.0;
             // if k is 0 cannot compute the ratio (CPE / k)
             for (int k = DEGREE_STEP; k < MAX_DEGREE; k += DEGREE_STEP) {
@@ -197,6 +203,9 @@ double default_test(int *best_unroll_idx, int *best_split_idx)
             func_count++;
         }
     }
+    for (int i = 1; i <= SPLIT_MAX; i++) {
+        printf("\b");
+    }
     return min;
 }
 
@@ -205,8 +214,8 @@ double compare_test(int func_num, int *min_cpe_idx, char *argv[])
     long cpu_freq = read_cpu_freq();
     printf("freq = %ld hz\n", cpu_freq);
 
-    int split_num[64];
-    int unrol_num[64];
+    int split_num[FUNC_NUM];
+    int unrol_num[FUNC_NUM];
     for (int i = 0; i < func_num; i++) {
         separate_argv(argv[i + 2], &split_num[i], &unrol_num[i]);
     }
@@ -236,8 +245,8 @@ void plot_test(int func_num, char *argv[])
 
     gen_plot(func_num, argv);
 
-    int split_num[64];
-    int unrol_num[64];
+    int split_num[FUNC_NUM];
+    int unrol_num[FUNC_NUM];
     for (int i = 0; i < func_num; i++) {
         separate_argv(argv[i + 2], &split_num[i], &unrol_num[i]);
     }
@@ -269,7 +278,7 @@ int main(int argc, char *argv[])
             int best_split_idx;
             default_test(&best_unroll_idx, &best_split_idx);
 
-            qsort(run_data, 64, sizeof(run_data[0]), run_data_cmp);
+            qsort(run_data, FUNC_NUM, sizeof(run_data[0]), run_data_cmp);
             for (int i = 0; i < 3; i++) {
                 printf("%d,%d: %lf\n", run_data[i].split_idx,
                        run_data[i].unrol_idx, run_data[i].cpe);

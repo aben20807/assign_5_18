@@ -4,10 +4,13 @@ static int func_cnt = 0;
 
 int main()
 {
-    gen_init(64);
-    for (int i = 1; i <= 8; i++) {
-        for (int j = 1; j <= 8; j++) {
-            gen_append_poly(i, j);
+    int split_num = 8;
+    int unrol_num = 10;
+
+    gen_init(split_num * unrol_num);
+    for (int s = 1; s <= split_num; s++) {
+        for (int u = 1; u <= unrol_num; u++) {
+            gen_append_poly(s, u);
         }
     }
     return 0;
