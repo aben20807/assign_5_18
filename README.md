@@ -32,8 +32,11 @@ Please copy the result between lines
 --------------------
 Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz
 CPU max freq = 3400000000 hz
-Best split & unroll: 1,5
-Lowest CPE = 1.577707
+1,10: 1.557728  
+1,7: 1.579318
+1,9: 1.581421
+1,6: 1.584928
+1,8: 1.591485
 --------------------
 Program closing...
 ```
