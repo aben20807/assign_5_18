@@ -4,8 +4,8 @@ static int func_cnt = 0;
 
 int main()
 {
-    int split_num = 8;
-    int unrol_num = 10;
+    int split_num = 4;
+    int unrol_num = 12;
 
     gen_init(split_num * unrol_num);
     for (int s = 1; s <= split_num; s++) {

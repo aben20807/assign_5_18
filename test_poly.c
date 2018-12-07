@@ -12,8 +12,8 @@ typedef double (*PolyFunc)(double a[], double x, long degree);
 #define TEST_TIMES 10000
 #define MAX_DEGREE 1000
 #define DEGREE_STEP 10
-#define SPLIT_MAX 8
-#define UNROL_MAX 10
+#define SPLIT_MAX 4
+#define UNROL_MAX 12
 #define FUNC_NUM SPLIT_MAX *UNROL_MAX
 
 typedef struct _RunData RunData;
