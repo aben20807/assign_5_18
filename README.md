@@ -5,7 +5,7 @@ This is formerly an assignment to optimize the algorithm shown in practice 5.5 a
 
 ## We require your help :D
 
-Please kindly run this program the default way and copy the result to this markdown website [here](https://hackmd.io/JbIPKc1lQtmOTWdNqDUh1g).
+Please kindly run this program the default way and copy the result to this markdown website [here](https://hackmd.io/s/rkdzvWJTX).
 
 ## Dependencies
 
@@ -30,13 +30,13 @@ $ make default
 ./test_poly default
 Please copy the result between lines
 --------------------
-Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz
-CPU max freq = 3400000000 hz
-1,10: 1.557728  
-1,7: 1.579318
-1,9: 1.581421
-1,6: 1.584928
-1,8: 1.591485
+Intel(R) Core(TM) i7-7500U CPU @ 2.70GHz
+CPU max freq = 3500000000 hz
+1,10: 1.126268
+1,6: 1.147574
+1,8: 1.149880
+1,9: 1.150835
+1,7: 1.153622
 --------------------
 Program closing...
 ```
