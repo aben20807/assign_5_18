@@ -9,7 +9,7 @@
 
 typedef double (*PolyFunc)(double a[], double x, long degree);
 
-#define TEST_TIMES 10000
+#define TEST_TIMES 100
 #define MAX_DEGREE 1000
 #define DEGREE_STEP 10
 #define SPLIT_MAX 4
@@ -63,11 +63,14 @@ double test_poly(PolyFunc poly, long degree, long cpu_freq)
     }
 
     for (int i = 0; i < TEST_TIMES; i++) {
+        double ans;
         double t1 = tvgetf();
-        double ans = poly(a, -1, degree);
+        const int MEASURE_TIMES = 100;
+        for (int j = 0; j < MEASURE_TIMES; j++) {
+            ans = poly(a, -1, degree);
+        }
         double t2 = tvgetf();
-
-        exec_cyc[i] = (t2 - t1) * cpu_freq;
+        exec_cyc[i] = (t2 - t1) * (cpu_freq / MEASURE_TIMES);
 
         /* Check correctness */
         if (ans != (double) degree / 2) {
