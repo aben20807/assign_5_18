@@ -5,7 +5,6 @@ CPU_FREQ = sudo cpupower frequency-set -g
 SUBDIR = ./dynamic_gen
 OBJS = $(SUBDIR)/gen_plot.o $(SUBDIR)/dynamic_poly.o
 INCLUDES = -I$(SUBDIR)
-LIBS = -ldl
 ARGS ?= 1,5 1,6 1,10 1,12
 
 GIT_HOOKS := .git/hooks/applied
